@@ -366,18 +366,21 @@ for step = 1:num_steps
             end
 
             % Calculate all distances between segments and find candidates within threshold
-            candidates = [];
+            candidates_len = 0;
+            candidates = zeros(num_segments^2, 3);
             for pI = 1:discrete_size
                 for pj = 1:discrete_size
                     dist = norm(P{i}(:,pI) - P{j}(:,pj));
                     if dist < proximity_threshold
-                        candidates = [candidates; pI, pj, dist];
+                        candidates_len++
+                        candidates(candidates_len, :) = [pI, pj, dist];
                     end
                 end
             end
 
             % If we have candidates, select one using distance-weighted probability
-            if ~isempty(candidates)
+            if candidates_len > 0
+                candidates = candidates(1:candidates_len, :)
                 % Calculate weights (inverse distance, so closer pairs are more likely)
                 weights = 1 ./ (candidates(:,3) + 1e-10); % Add small epsilon to avoid division by zero
                 weights = weights / sum(weights); % Normalize to probabilities
