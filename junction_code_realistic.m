@@ -71,6 +71,13 @@ junction_type_len = 0;
 theta = zeros(num_segments^2);
 theta_len = 0;
 
+% Initialize disjoint-set data structure
+[Pred Rank] = InitializeRootedTree(num_segments)
+perpetual_components = cell(num_segments, 1)
+for i = 1:num_segments
+    perpetual_components{i} = [i]
+end
+
 %% Plotting setup
 figure(1);
 view(3);
@@ -89,53 +96,18 @@ colors = lines(num_segments);
 % end
 % drawnow;
 
+
+
 %% Main simulation loop
 for step = 1:num_steps
 
-    % Build connected_segments from connections matrix for component identification
-    connected_segments = cell(1, num_segments);
-    for i = 1:num_segments
-        connected_segments{i} = [];
-    end
-
-    % Populate connected_segments from connections matrix
-    for conn_idx = 1:connections_len
-        seg1 = connections(conn_idx, 1);
-        seg2 = connections(conn_idx, 2);
-        connected_segments{seg1} = [connected_segments{seg1}, seg2];
-        connected_segments{seg2} = [connected_segments{seg2}, seg1];
-    end
-
-    % Identify connected components (groups of connected segments)
-    visited = false(1, num_segments);
-    components = {};
-
-    for i = 1:num_segments
-        if ~visited(i)
-            % Start new component with segment i
-            component = [];
-            stack = i;
-
-            while ~isempty(stack)
-                current = stack(end);
-                stack(end) = [];
-
-                if ~visited(current)
-                    visited(current) = true;
-                    component = [component, current];
-
-                    % Add all connected segments to stack
-                    stack = [stack, connected_segments{current}];
-                end
-            end
-
-            components{end+1} = component;
-        end
-    end
-
     % Move each component as a rigid body
-    for comp_idx = 1:length(components)
-        component = components{comp_idx};
+    for comp_idx = 1:length(perpetual_components)
+        component = perpetual_components{comp_idx};
+
+        if length(component) == 0
+            continue;
+        end
 
         % Generate random movement and rotation for this component
         noise_trans = randn(1,3)*sqrt(2*Dtrans*dt);
@@ -208,18 +180,18 @@ for step = 1:num_steps
             com = mean(all_points, 2);
 
             % Apply translation
-            % new_com = com + (1/length(components{comp_idx}))*noise_trans'; %have bigger components move slower
+            % new_com = com + (1/length(perpetual_components{comp_idx}))*noise_trans'; %have bigger components move slower
             % for i = component
-            %     P{i} = P{i} + (1/length(components{comp_idx}))*noise_trans'; %have bigger components move slower
+            %     P{i} = P{i} + (1/length(perpetual_components{comp_idx}))*noise_trans'; %have bigger components move slower
             % end
-            new_com = com + (1/(length(components{comp_idx}))^3)*noise_trans'; %have bigger components move MUCH slower
+            new_com = com + (1/(length(perpetual_components{comp_idx}))^3)*noise_trans'; %have bigger components move MUCH slower
             for i = component
-                P{i} = P{i} + (1/(length(components{comp_idx}))^3)*noise_trans'; %have bigger components move MUCH slower
+                P{i} = P{i} + (1/(length(perpetual_components{comp_idx}))^3)*noise_trans'; %have bigger components move MUCH slower
             end
 
             % Apply rotation around center of mass
-            %axis = (1/length(components{comp_idx}))*noise_rot'; %have bigger components move slower
-            axis = (1/(length(components{comp_idx}))^3)*noise_rot'; %have bigger components move MUCH slower
+            %axis = (1/length(perpetual_components{comp_idx}))*noise_rot'; %have bigger components move slower
+            axis = (1/(length(perpetual_components{comp_idx}))^3)*noise_rot'; %have bigger components move MUCH slower
             angle = norm(axis);
             if angle > 0
                 axis = axis / angle;
@@ -351,17 +323,10 @@ for step = 1:num_steps
     % Check for proximity and create NEW connections (only for unconnected segments)
     for i = 1:num_segments
         for j = i+1:num_segments
-            % Skip if already connected
-            already_connected = false;
-            for conn_idx = 1:connections_len
-                if (connections(conn_idx, 1) == i && connections(conn_idx, 2) == j) || ...
-                        (connections(conn_idx, 1) == j && connections(conn_idx, 2) == i)
-                    already_connected = true;
-                    break;
-                end
-            end
+            root_i = FindRoot(Pred, i)
+            root_j = FindRoot(pred, j)
 
-            if already_connected
+            if root_i == root_j
                 continue;
             end
 
@@ -405,6 +370,16 @@ for step = 1:num_steps
 
                 P{i} = P{i} + displacement_i;
                 P{j} = P{j} + displacement_j;
+
+                % Union the two sets
+                [Pred Rank] = UnionbyRank(Pred, Rank, root_i, root_j)
+                if root_i == FindRoot(Pred, root_i)
+                    perpetual_components{root_i} = [perpetual_components{root_i} perpetual_components{root_j}]
+                    perpetual_components{root_j} = []
+                else
+                    perpetual_components{root_j} = [perpetual_components{root_j} perpetual_components{root_i}]
+                    perpetual_components{root_i} = []
+                end
 
                 % Add connection to matrix
                 connections_len++
@@ -514,6 +489,13 @@ thetadeg=theta*180/pi;
 %only use the acute angles
 thetadegacute=min(thetadeg, 180 - thetadeg);
 
+components = {}
+for i = 1:length(perpetual_components)
+    if length(perpetual_components{i}) > 0
+        components{end+1} = perpetual_components{i}
+    end
+end
+
 %save the data from the run
 save -ascii realistic_Tend420_200fibers_slow_diffusion_junction_type.dat junction_type
 save -ascii realistic_Tend420_200fibers_slow_diffusion_junction_angle.dat thetadegacute
@@ -532,4 +514,48 @@ histogram(junction_type)
 title('Histogram of junction types')
 savefig('junction_type_realistic_Tend420_200fibers_slow_diffusion.fig')
 
+
+
+
+function [Pred Rank] = UnionbyRank(Pred, Rank, Tree1, Tree2)
+% This function accepts a Predecessor and Rank function describing a rooted
+% tree forest and two trees to be merged. It then merges the trees based on
+% their ranks and updates the Pred and Rank lists
+
+if Rank(Tree1) > Rank(Tree2)
+    Pred(Tree2) = Tree1; % Merge the smaller tree into the larger tree
+elseif Rank(Tree1) < Rank(Tree2)
+    Pred(Tree1) = Tree2; % Merge the smaller tree into the larger tree
+else
+    Pred(Tree1) = Tree2; % Merge the trees arbitrarily
+    Rank(Tree2) = Rank(Tree2) + 1; % Increase the rank of the new tree by 1
+end
+
+function [Pred Root] = FindRoot(Pred, Node)
+% This function accepts A Predecessor list for a rooted forest and a Node.
+% The function then finds the root of the tree containing "Node" and, in
+% the process, uses path halving to shorten subsequent searches.
+
+Root = Node; % Set the root equal to the start Node
+while Pred(Root) ~= Root % as long as the predecessor of the root is not the root itself
+    OldNode = Root; % Store the Node we're currently at
+    Root = Pred(Root); % Move one step up the tree
+    Pred(OldNode) = Pred(Root); % Set the predecessor of the stored node to the node two levels above it
+    Root = Pred(Root); % Move another step up the tree
+end
+Root = Pred(Root); % Once the "while" loop exits we could still be one level below the root so we'll move up one more step.
+% NOTE: we may make up to two more steps than we need to but this won't
+% be a problem since Pred(Root) = Root so we'll just cycle for a few steps.
+% Also the additional steps caused by this are well worth the savings from
+% the path halving.
+
+function [Pred Rank] = InitializeRootedTree(n)
+% This function creates a predecessor list and a rank list for "n" nodes in
+% a rooted tree forest. At this point all nodes are in their own tree so
+% pred(i)=i and Rank(i)=0
+
+for i = 1:n
+    Pred(i) = i;
+    Rank(i) = 0;
+end
 
