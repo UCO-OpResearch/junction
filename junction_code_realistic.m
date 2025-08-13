@@ -324,7 +324,7 @@ for step = 1:num_steps
     for i = 1:num_segments
         for j = i+1:num_segments
             root_i = FindRoot(Pred, i);
-            root_j = FindRoot(pred, j);
+            root_j = FindRoot(Pred, j);
 
             if root_i == root_j
                 continue;
