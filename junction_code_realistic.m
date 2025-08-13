@@ -79,7 +79,7 @@ title('Fiber Diffusion and Junction Formation in 3D');
 colors = lines(num_segments);
 
 % Initialize plot handles
-segment_plots = gobjects(num_segments, 1);
+segment_plots = zeros(num_segments, 1);
 for i = 1:num_segments
     segment_plots(i) = plot3(P{i}(1,:), P{i}(2,:), P{i}(3,:), '-', ...
         'Color', colors(i,:), 'LineWidth', 2);
