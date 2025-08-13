@@ -72,10 +72,10 @@ theta = zeros(num_segments^2);
 theta_len = 0;
 
 % Initialize disjoint-set data structure
-[Pred Rank] = InitializeRootedTree(num_segments)
-perpetual_components = cell(num_segments, 1)
+[Pred Rank] = InitializeRootedTree(num_segments);
+perpetual_components = cell(num_segments, 1);
 for i = 1:num_segments
-    perpetual_components{i} = [i]
+    perpetual_components{i} = [i];
 end
 
 %% Plotting setup
@@ -323,8 +323,8 @@ for step = 1:num_steps
     % Check for proximity and create NEW connections (only for unconnected segments)
     for i = 1:num_segments
         for j = i+1:num_segments
-            root_i = FindRoot(Pred, i)
-            root_j = FindRoot(pred, j)
+            root_i = FindRoot(Pred, i);
+            root_j = FindRoot(pred, j);
 
             if root_i == root_j
                 continue;
@@ -372,17 +372,17 @@ for step = 1:num_steps
                 P{j} = P{j} + displacement_j;
 
                 % Union the two sets
-                [Pred Rank] = UnionbyRank(Pred, Rank, root_i, root_j)
+                [Pred Rank] = UnionbyRank(Pred, Rank, root_i, root_j);
                 if root_i == FindRoot(Pred, root_i)
-                    perpetual_components{root_i} = [perpetual_components{root_i} perpetual_components{root_j}]
-                    perpetual_components{root_j} = []
+                    perpetual_components{root_i} = [perpetual_components{root_i} perpetual_components{root_j}];
+                    perpetual_components{root_j} = [];
                 else
-                    perpetual_components{root_j} = [perpetual_components{root_j} perpetual_components{root_i}]
-                    perpetual_components{root_i} = []
+                    perpetual_components{root_j} = [perpetual_components{root_j} perpetual_components{root_i}];
+                    perpetual_components{root_i} = [];
                 end
 
                 % Add connection to matrix
-                connections_len++
+                connections_len++;
                 connections(connections_len, :) = [i, j, closest_point_i, closest_point_j];
 
                 % Calculate angle between newly connected fibers
@@ -408,7 +408,7 @@ for step = 1:num_steps
 
                 fprintf('Step %d: Segments %d and %d connected at points %d and %d%s (distance: %.3f -> 0.000) (angle: %.3f)\n', ...
                     step, i, j, closest_point_i, closest_point_j, connection_type, min_dist, new_angle);
-                junction_type_len++
+                junction_type_len++;
                 junction_type(junction_type_len)=new_junc;
             end
         end
@@ -475,24 +475,24 @@ fprintf('Total connections formed: %d\n', total_connections);
 %fprintf('Frames captured: %d\n', length(frames));
 
 % Trim off the excess of the junction_type array
-junction_type = junction_type(1:junction_type_len)
+junction_type = junction_type(1:junction_type_len);
 
 fprintf('number of X-junctions: %d\n',length(find(junction_type==3)));
 fprintf('number of T-junctions: %d\n',length(find(junction_type==2)));
 fprintf('number of L-junctions: %d\n',length(find(junction_type==1)));
 
 % Trim off the excess of the theta array
-theta = theta(1:theta_len)
+theta = theta(1:theta_len);
 %convert angle from radians to degrees
 thetadeg=theta*180/pi;
 
 %only use the acute angles
 thetadegacute=min(thetadeg, 180 - thetadeg);
 
-components = {}
+components = {};
 for i = 1:length(perpetual_components)
     if length(perpetual_components{i}) > 0
-        components{end+1} = perpetual_components{i}
+        components{end+1} = perpetual_components{i};
     end
 end
 
