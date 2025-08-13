@@ -64,9 +64,12 @@ for i = 1:num_segments
 end
 
 % Initialize connection tracking - stores [seg1, seg2, point1, point2] for each connection
-connections = [];
-junction_type = [];
-theta = [];
+connections = zeros(num_segments^2, 4);
+connections_len = 0;
+junction_type = zeros(num_segments^2);
+junction_type_len = 0;
+theta = zeros(num_segments^2);
+theta_len = 0;
 
 %% Plotting setup
 figure(1);
@@ -96,7 +99,7 @@ for step = 1:num_steps
     end
 
     % Populate connected_segments from connections matrix
-    for conn_idx = 1:size(connections, 1)
+    for conn_idx = 1:connections_len
         seg1 = connections(conn_idx, 1);
         seg2 = connections(conn_idx, 2);
         connected_segments{seg1} = [connected_segments{seg1}, seg2];
@@ -185,7 +188,7 @@ for step = 1:num_steps
 
             % Store original connection points before any movement
             original_connection_points = [];
-            for conn_idx = 1:size(connections, 1)
+            for conn_idx = 1:connections_len
                 seg1 = connections(conn_idx, 1);
                 seg2 = connections(conn_idx, 2);
                 point1_idx = connections(conn_idx, 3);
@@ -350,7 +353,7 @@ for step = 1:num_steps
         for j = i+1:num_segments
             % Skip if already connected
             already_connected = false;
-            for conn_idx = 1:size(connections, 1)
+            for conn_idx = 1:connections_len
                 if (connections(conn_idx, 1) == i && connections(conn_idx, 2) == j) || ...
                         (connections(conn_idx, 1) == j && connections(conn_idx, 2) == i)
                     already_connected = true;
@@ -401,11 +404,13 @@ for step = 1:num_steps
                 P{j} = P{j} + displacement_j;
 
                 % Add connection to matrix
-                connections = [connections; i, j, closest_point_i, closest_point_j];
+                connections_len++
+                connections(connections_len, :) = [i, j, closest_point_i, closest_point_j];
 
                 % Calculate angle between newly connected fibers
                 new_angle = acos(dot((P{i}(:,discrete_size)-P{i}(:,1)),P{j}(:,discrete_size)-P{j}(:,1))/(norm(P{i}(:,discrete_size)-P{i}(:,1))*norm(P{j}(:,discrete_size)-P{j}(:,1))));
-                theta = [theta new_angle]; %measured in radians
+                theta_len++
+                theta(theta_len) = new_angle; %measured in radians
 
                 % Determine connection type for reporting
                 is_endpoint_i = (closest_point_i == 1) || (closest_point_i == discrete_size);
@@ -425,7 +430,8 @@ for step = 1:num_steps
 
                 fprintf('Step %d: Segments %d and %d connected at points %d and %d%s (distance: %.3f -> 0.000) (angle: %.3f)\n', ...
                     step, i, j, closest_point_i, closest_point_j, connection_type, min_dist, new_angle);
-                junction_type=[junction_type new_junc];
+                junction_type_len++
+                junction_type(junction_type_len)=new_junc;
             end
         end
     end
@@ -440,7 +446,7 @@ for step = 1:num_steps
     %     end
 
     %     % Visualize connections - draw both connection points
-    %     for conn_idx = 1:size(connections, 1)
+    %     for conn_idx = 1:connections_len
     %         seg1 = connections(conn_idx, 1);
     %         seg2 = connections(conn_idx, 2);
     %         point1 = connections(conn_idx, 3);
@@ -484,16 +490,21 @@ end
 toc
 
 % Display final statistics
-total_connections = size(connections, 1);
+total_connections = connections_len;
 
 fprintf('\nSimulation completed!\n');
 fprintf('Total connections formed: %d\n', total_connections);
 %fprintf('Frames captured: %d\n', length(frames));
 
+% Trim off the excess of the junction_type array
+junction_type = junction_type(1:junction_type_len)
+
 fprintf('number of X-junctions: %d\n',length(find(junction_type==3)));
 fprintf('number of T-junctions: %d\n',length(find(junction_type==2)));
 fprintf('number of L-junctions: %d\n',length(find(junction_type==1)));
 
+% Trim off the excess of the theta array
+theta = theta(1:theta_len)
 %convert angle from radians to degrees
 thetadeg=theta*180/pi;
 
