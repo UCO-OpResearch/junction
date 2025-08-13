@@ -1,51 +1,6 @@
 close all
 clearvars
 
-
-
-function [Pred Rank] = UnionbyRank(Pred, Rank, Tree1, Tree2)
-% This function accepts a Predecessor and Rank function describing a rooted
-% tree forest and two trees to be merged. It then merges the trees based on
-% their ranks and updates the Pred and Rank lists
-
-if Rank(Tree1) > Rank(Tree2)
-    Pred(Tree2) = Tree1; % Merge the smaller tree into the larger tree
-elseif Rank(Tree1) < Rank(Tree2)
-    Pred(Tree1) = Tree2; % Merge the smaller tree into the larger tree
-else
-    Pred(Tree1) = Tree2; % Merge the trees arbitrarily
-    Rank(Tree2) = Rank(Tree2) + 1; % Increase the rank of the new tree by 1
-end
-
-function [Pred Root] = FindRoot(Pred, Node)
-% This function accepts A Predecessor list for a rooted forest and a Node.
-% The function then finds the root of the tree containing "Node" and, in
-% the process, uses path halving to shorten subsequent searches.
-
-Root = Node; % Set the root equal to the start Node
-while Pred(Root) ~= Root % as long as the predecessor of the root is not the root itself
-    OldNode = Root; % Store the Node we're currently at
-    Root = Pred(Root); % Move one step up the tree
-    Pred(OldNode) = Pred(Root); % Set the predecessor of the stored node to the node two levels above it
-    Root = Pred(Root); % Move another step up the tree
-end
-Root = Pred(Root); % Once the "while" loop exits we could still be one level below the root so we'll move up one more step.
-% NOTE: we may make up to two more steps than we need to but this won't
-% be a problem since Pred(Root) = Root so we'll just cycle for a few steps.
-% Also the additional steps caused by this are well worth the savings from
-% the path halving.
-
-function [Pred Rank] = InitializeRootedTree(n)
-% This function creates a predecessor list and a rank list for "n" nodes in
-% a rooted tree forest. At this point all nodes are in their own tree so
-% pred(i)=i and Rank(i)=0
-
-for i = 1:n
-    Pred(i) = i;
-    Rank(i) = 0;
-end
-
-
 tic
 
 %This code randomly chooses connection point amongst all points within the
