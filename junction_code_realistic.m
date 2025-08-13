@@ -79,12 +79,12 @@ title('Fiber Diffusion and Junction Formation in 3D');
 colors = lines(num_segments);
 
 % Initialize plot handles
-segment_plots = zeros(num_segments, 1);
-for i = 1:num_segments
-    segment_plots(i) = plot3(P{i}(1,:), P{i}(2,:), P{i}(3,:), '-', ...
-        'Color', colors(i,:), 'LineWidth', 2);
-end
-drawnow;
+% segment_plots = zeros(num_segments, 1);
+% for i = 1:num_segments
+%     segment_plots(i) = plot3(P{i}(1,:), P{i}(2,:), P{i}(3,:), '-', ...
+%         'Color', colors(i,:), 'LineWidth', 2);
+% end
+% drawnow;
 
 %% Main simulation loop
 for step = 1:num_steps
@@ -431,54 +431,54 @@ for step = 1:num_steps
     end
 
     % Update plots
-    if mod(step,plot_interval) == 0 %only plot every "plot_interval" time steps
-        step
-        for i = 1:num_segments
-            set(segment_plots(i), 'XData', P{i}(1,:), ...
-                'YData', P{i}(2,:), ...
-                'ZData', P{i}(3,:));
-        end
+    % if mod(step,plot_interval) == 0 %only plot every "plot_interval" time steps
+    %     step
+    %     for i = 1:num_segments
+    %         set(segment_plots(i), 'XData', P{i}(1,:), ...
+    %             'YData', P{i}(2,:), ...
+    %             'ZData', P{i}(3,:));
+    %     end
 
-        % Visualize connections - draw both connection points
-        for conn_idx = 1:size(connections, 1)
-            seg1 = connections(conn_idx, 1);
-            seg2 = connections(conn_idx, 2);
-            point1 = connections(conn_idx, 3);
-            point2 = connections(conn_idx, 4);
+    %     % Visualize connections - draw both connection points
+    %     for conn_idx = 1:size(connections, 1)
+    %         seg1 = connections(conn_idx, 1);
+    %         seg2 = connections(conn_idx, 2);
+    %         point1 = connections(conn_idx, 3);
+    %         point2 = connections(conn_idx, 4);
 
-            % Verify that connection points are still coincident
-            pos1 = P{seg1}(:, point1);
-            pos2 = P{seg2}(:, point2);
-            connection_error = norm(pos1 - pos2);
+    %         % Verify that connection points are still coincident
+    %         pos1 = P{seg1}(:, point1);
+    %         pos2 = P{seg2}(:, point2);
+    %         connection_error = norm(pos1 - pos2);
 
-            if connection_error > 1e-3 % Small tolerance for numerical errors
-                fprintf('Warning: Connection %d has error %.6f\n', conn_idx, connection_error);
-            end
+    %         if connection_error > 1e-3 % Small tolerance for numerical errors
+    %             fprintf('Warning: Connection %d has error %.6f\n', conn_idx, connection_error);
+    %         end
 
-            % Draw connection points
-            plot3(pos1(1), pos1(2), pos1(3), 'ro', 'MarkerSize', 6, 'MarkerFaceColor', 'red');
-            plot3(pos2(1), pos2(2), pos2(3), 'go', 'MarkerSize', 4, 'MarkerFaceColor', 'green');
-        end
+    %         % Draw connection points
+    %         plot3(pos1(1), pos1(2), pos1(3), 'ro', 'MarkerSize', 6, 'MarkerFaceColor', 'red');
+    %         plot3(pos2(1), pos2(2), pos2(3), 'go', 'MarkerSize', 4, 'MarkerFaceColor', 'green');
+    %     end
 
-        drawnow;
+    %     drawnow;
 
-        % Capture frame
-        % if step == 1
-        %     frames = getframe(gcf);
-        % else
-        %     frames(step) = getframe(gcf);
-        % end
+    %     % Capture frame
+    %     % if step == 1
+    %     %     frames = getframe(gcf);
+    %     % else
+    %     %     frames(step) = getframe(gcf);
+    %     % end
 
-        % Clear connection markers for next frame
-        children = get(gca, 'Children');
-        markers_to_delete = [];
-        for c = 1:length(children)
-            if strcmp(get(children(c), 'Marker'), 'o')
-                markers_to_delete = [markers_to_delete, c];
-            end
-        end
-        delete(children(markers_to_delete));
-    end
+    %     % Clear connection markers for next frame
+    %     children = get(gca, 'Children');
+    %     markers_to_delete = [];
+    %     for c = 1:length(children)
+    %         if strcmp(get(children(c), 'Marker'), 'o')
+    %             markers_to_delete = [markers_to_delete, c];
+    %         end
+    %     end
+    %     delete(children(markers_to_delete));
+    % end
 end
 
 toc
