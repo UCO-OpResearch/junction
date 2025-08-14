@@ -375,7 +375,7 @@ for step = 1:num_steps
                 for pj = 1:discrete_size
                     dist = norm(P{i}(:,pI) - P{j}(:,pj));
                     if dist < proximity_threshold
-                        candidates_len++
+                        candidates_len++;
                         candidates(candidates_len, :) = [pI, pj, dist];
                     end
                 end
