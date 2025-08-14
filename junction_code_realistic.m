@@ -92,6 +92,10 @@ drawnow;
 %% Main simulation loop
 for step = 1:num_steps
 
+    if mod(step*dt, 10) == 0
+        fprintf("Time elapsed: %d/n", step*dt);
+    end
+
     % Build connected_segments from connections matrix for component identification
     connected_segments = cell(1, num_segments);
     for i = 1:num_segments
