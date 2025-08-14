@@ -1,6 +1,9 @@
 close all
 clearvars
 
+% Initialize Octave's RNG to the same state as the default in MATLAB
+rand('twister',twister_seed)
+
 tic
 
 %This code randomly chooses connection point amongst all points within the
@@ -509,12 +512,12 @@ save('realistic_Tend420_200fibers_slow_diffusion_parameters.mat', 'L', 'segment_
 
 %visualize histograms of angles
 figure(2)
-histogram(thetadegacute,'BinWidth',5)
+hist(thetadegacute, -180:5:180)
 title('Histogram of angles')
 savefig('angles_realistic_Tend420_200fibers_slow_diffusion.fig')
 
 figure(3)
-histogram(junction_type)
+hist(junction_type)
 title('Histogram of junction types')
 savefig('junction_type_realistic_Tend420_200fibers_slow_diffusion.fig')
 
