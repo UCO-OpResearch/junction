@@ -1,6 +1,9 @@
 close all
 clearvars
 
+% Initialize Octave's RNG to the same state as the default in MATLAB
+rand('twister',twister_seed)
+
 tic
 
 %This code randomly chooses connection point amongst all points within the
@@ -100,6 +103,10 @@ colors = lines(num_segments);
 
 %% Main simulation loop
 for step = 1:num_steps
+
+    if mod(step*dt, 10) == 0
+        fprintf("Time elapsed: %d/n", step*dt);
+    end
 
     % Move each component as a rigid body
     for comp_idx = 1:length(perpetual_components)
@@ -337,7 +344,7 @@ for step = 1:num_steps
                 for pj = 1:discrete_size
                     dist = norm(P{i}(:,pI) - P{j}(:,pj));
                     if dist < proximity_threshold
-                        candidates_len++
+                        candidates_len++;
                         candidates(candidates_len, :) = [pI, pj, dist];
                     end
                 end
@@ -505,12 +512,12 @@ save('realistic_Tend420_200fibers_slow_diffusion_parameters.mat', 'L', 'segment_
 
 %visualize histograms of angles
 figure(2)
-histogram(thetadegacute,'BinWidth',5)
+hist(thetadegacute, -180:5:180)
 title('Histogram of angles')
 savefig('angles_realistic_Tend420_200fibers_slow_diffusion.fig')
 
 figure(3)
-histogram(junction_type)
+hist(junction_type)
 title('Histogram of junction types')
 savefig('junction_type_realistic_Tend420_200fibers_slow_diffusion.fig')
 
