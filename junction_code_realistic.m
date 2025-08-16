@@ -2,7 +2,7 @@ close all
 clearvars
 
 % Initialize Octave's RNG to the same state as the default in MATLAB
-rand('twister',twister_seed)
+rng(0, 'twister')
 
 tic
 
@@ -96,7 +96,7 @@ colors = lines(num_segments);
 for step = 1:num_steps
 
     if mod(step*dt, 10) == 0
-        fprintf("Time elapsed: %d/n", step*dt);
+        fprintf("Time elapsed: %d\n", step*dt);
     end
 
     % Build connected_segments from connections matrix for component identification
