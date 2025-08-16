@@ -411,12 +411,12 @@ for step = 1:num_steps
                 P{j} = P{j} + displacement_j;
 
                 % Add connection to matrix
-                connections_len++
+                connections_len++;
                 connections(connections_len, :) = [i, j, closest_point_i, closest_point_j];
 
                 % Calculate angle between newly connected fibers
                 new_angle = acos(dot((P{i}(:,discrete_size)-P{i}(:,1)),P{j}(:,discrete_size)-P{j}(:,1))/(norm(P{i}(:,discrete_size)-P{i}(:,1))*norm(P{j}(:,discrete_size)-P{j}(:,1))));
-                theta_len++
+                theta_len++;
                 theta(theta_len) = new_angle; %measured in radians
 
                 % Determine connection type for reporting
@@ -437,7 +437,7 @@ for step = 1:num_steps
 
                 fprintf('Step %d: Segments %d and %d connected at points %d and %d%s (distance: %.3f -> 0.000) (angle: %.3f)\n', ...
                     step, i, j, closest_point_i, closest_point_j, connection_type, min_dist, new_angle);
-                junction_type_len++
+                junction_type_len++;
                 junction_type(junction_type_len)=new_junc;
             end
         end
@@ -504,14 +504,14 @@ fprintf('Total connections formed: %d\n', total_connections);
 %fprintf('Frames captured: %d\n', length(frames));
 
 % Trim off the excess of the junction_type array
-junction_type = junction_type(1:junction_type_len)
+junction_type = junction_type(1:junction_type_len);
 
 fprintf('number of X-junctions: %d\n',length(find(junction_type==3)));
 fprintf('number of T-junctions: %d\n',length(find(junction_type==2)));
 fprintf('number of L-junctions: %d\n',length(find(junction_type==1)));
 
 % Trim off the excess of the theta array
-theta = theta(1:theta_len)
+theta = theta(1:theta_len);
 %convert angle from radians to degrees
 thetadeg=theta*180/pi;
 
