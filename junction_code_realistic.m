@@ -2,7 +2,7 @@ close all
 clearvars
 
 % Initialize Octave's RNG to the same state as the default in MATLAB
-rand('twister',twister_seed)
+rng(0, 'twister')
 
 tic
 
