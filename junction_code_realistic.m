@@ -387,7 +387,7 @@ for step = 1:num_steps
 
             % If we have candidates, select one using distance-weighted probability
             if candidates_len > 0
-                candidates = candidates(1:candidates_len, :)
+                candidates = candidates(1:candidates_len, :);
                 % Calculate weights (inverse distance, so closer pairs are more likely)
                 weights = 1 ./ (candidates(:,3) + 1e-10); % Add small epsilon to avoid division by zero
                 weights = weights / sum(weights); % Normalize to probabilities
