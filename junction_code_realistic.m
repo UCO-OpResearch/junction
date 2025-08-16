@@ -96,7 +96,7 @@ colors = lines(num_segments);
 for step = 1:num_steps
 
     if mod(step*dt, 10) == 0
-        fprintf("Time elapsed: %d/n", step*dt);
+        fprintf("Time elapsed: %d\n", step*dt);
     end
 
     % Build connected_segments from connections matrix for component identification
