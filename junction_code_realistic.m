@@ -330,8 +330,8 @@ for step = 1:num_steps
     % Check for proximity and create NEW connections (only for unconnected segments)
     for i = 1:num_segments
         for j = i+1:num_segments
-            root_i = FindRoot(Pred, i);
-            root_j = FindRoot(Pred, j);
+            [Pred root_i] = FindRoot(Pred, i);
+            [Pred root_j] = FindRoot(Pred, j);
 
             if root_i == root_j
                 continue;
@@ -380,7 +380,8 @@ for step = 1:num_steps
 
                 % Union the two sets
                 [Pred Rank] = UnionbyRank(Pred, Rank, root_i, root_j);
-                if root_i == FindRoot(Pred, root_i)
+                [Pred new_root] = FindRoot(Pred, root_i)
+                if new_root == root_i
                     perpetual_components{root_i} = [perpetual_components{root_i} perpetual_components{root_j}];
                     perpetual_components{root_j} = [];
                 else
