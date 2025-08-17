@@ -380,7 +380,7 @@ for step = 1:num_steps
 
                 % Union the two sets
                 [Pred Rank] = UnionbyRank(Pred, Rank, root_i, root_j);
-                [Pred new_root] = FindRoot(Pred, root_i)
+                [Pred new_root] = FindRoot(Pred, root_i);
                 if new_root == root_i
                     perpetual_components{root_i} = [perpetual_components{root_i} perpetual_components{root_j}];
                     perpetual_components{root_j} = [];
