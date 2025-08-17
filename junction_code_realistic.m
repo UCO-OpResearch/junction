@@ -355,30 +355,91 @@ for step = 1:num_steps
         end
     end
 
+    % Figure out which point is the center of a discretized segment
+    center_point_idx = ceil(discrete_size/2);
+
+    % Get the centers of all the segments
 	current_centers = zeros(num_segments, 3);
 	for i = 1:num_segments
-		current_centers(i, :) = P{i}(:, ceil(discrete_size/2));
+		current_centers(i, :) = P{i}(:, center_point_idx);
 	end
 
+    % Sort the center points
 	[sorted_centers, sorted_indices] = sort(current_centers);
 
     % Check for proximity and create NEW connections (only for unconnected segments)
     for i = 1:num_segments
-        for j = i+1:num_segments
-            % Skip if already connected
-            already_connected = false;
-            for conn_idx = 1:connections_len
-                if (connections(conn_idx, 1) == i && connections(conn_idx, 2) == j) || ...
-                        (connections(conn_idx, 1) == j && connections(conn_idx, 2) == i)
-                    already_connected = true;
-                    break;
+        % Figure out which segments could be in range of segment i
+        potential_j = zeros(num_segments, 1);
+        num_potential_j = 0;
+        % Get the center of segment i
+        center_i = P{i}(:, center_point_idx);
+        % Figure out where segment i's center x co-ordinate is in the sorted list
+        i_x_idx = binarySearch(sorted_centers(:, 1), center_i(1));
+        % Start by checking the ones before it in the list
+        j_x_idx = i_x_idx - 1;
+        % Keep checking as long as there are more points to the left and as long as the x co-ordinate is in range
+        while j_x_idx > 0 && center_i(1) - sorted_centers(j_x_idx, 1) < segment_length + proximity_threshold
+            % Find the number of the segment
+            j = sorted_indices(j_x_idx, 1);
+            % Only check each pair once
+            if i < j
+                % Check if i and j are already joined
+                already_connected = false;
+                for conn_idx = 1:connections_len
+                    if (connections(conn_idx, 1) == i && connections(conn_idx, 2) == j) || ...
+                            (connections(conn_idx, 1) == j && connections(conn_idx, 2) == i)
+                        already_connected = true;
+                        break;
+                    end
+                end
+                if ~already_connected
+                    % Find the center of segment j
+                    center_j = P{j}(:, center_point_idx);
+                    % Segments i and j MUST be out of range if their centers are further than the segment length + the proximity threshold in the l-infinity metric since it is an upper bound on the l-2 (euclidean) norm
+                    if max(abs(center_j(2)-center_i(2)), abs(center_j(3)-center_i(3))) < segment_length + proximity_threshold
+                        % Add it to our list for a more thorough check
+                        num_potential_j++;
+                        potential_j(num_potential_j) = j;
+                    end
                 end
             end
-
-            if already_connected
-                continue;
+            j_x_idx--;
+        end
+        % Now check the ones after it in the list
+        j_x_idx = i_x_idx + 1;
+        % Keep checking as long as there are more points to the left and as long as the x co-ordinate is in range
+        while j_x_idx <= num_segments && sorted_centers(j_x_idx, 1) - center_i(1) < segment_length + proximity_threshold
+            % Find the number of the segment
+            j = sorted_indices(j_x_idx, 1);
+            % Only check each pair once
+            if i < j
+                % Check if i and j are already joined
+                already_connected = false;
+                for conn_idx = 1:connections_len
+                    if (connections(conn_idx, 1) == i && connections(conn_idx, 2) == j) || ...
+                            (connections(conn_idx, 1) == j && connections(conn_idx, 2) == i)
+                        already_connected = true;
+                        break;
+                    end
+                end
+                if ~already_connected
+                    % Find the center of segment j
+                    center_j = P{j}(:, center_point_idx);
+                    % Segments i and j MUST be out of range if their centers are further than the segment length + the proximity threshold in the l-infinity metric since it is an upper bound on the l-2 (euclidean) norm
+                    if max(abs(center_j(2)-center_i(2)), abs(center_j(3)-center_i(3))) < segment_length + proximity_threshold
+                        % Add it to our list for a more thorough check
+                        num_potential_j++;
+                        potential_j(num_potential_j) = j;
+                    end
+                end
             end
+            j_x_idx++;
+        end
 
+        % Loop over all the candidates in the list we generated
+        for list_idx = 1:num_potential_j
+            j = potential_j(list_idx);
             % Calculate all distances between segments and find candidates within threshold
             candidates_len = 0;
             candidates = zeros(num_segments^2, 3);
@@ -419,6 +480,7 @@ for step = 1:num_steps
 
                 P{i} = P{i} + displacement_i;
                 P{j} = P{j} + displacement_j;
+
 
                 % Add connection to matrix
                 connections_len++;
