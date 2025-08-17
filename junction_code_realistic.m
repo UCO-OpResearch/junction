@@ -327,6 +327,13 @@ for step = 1:num_steps
         end
     end
 
+	current_centers = zeros(num_segments, 3);
+	for i = 1:num_segments
+		current_centers(i, :) = P{i}(:, ceil(discrete_size/2));
+	end
+
+	[sorted_centers, sorted_indices] = sort(current_centers);
+
     % Check for proximity and create NEW connections (only for unconnected segments)
     for i = 1:num_segments
         for j = i+1:num_segments
