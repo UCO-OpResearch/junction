@@ -2,7 +2,7 @@ close all
 clearvars
 
 % Initialize Octave's RNG to the same state as the default in MATLAB
-rand('twister',twister_seed)
+rng(0, 'twister')
 
 tic
 
@@ -105,7 +105,7 @@ colors = lines(num_segments);
 for step = 1:num_steps
 
     if mod(step*dt, 10) == 0
-        fprintf("Time elapsed: %d/n", step*dt);
+        fprintf("Time elapsed: %d\n", step*dt);
     end
 
     % Move each component as a rigid body
@@ -352,7 +352,7 @@ for step = 1:num_steps
 
             % If we have candidates, select one using distance-weighted probability
             if candidates_len > 0
-                candidates = candidates(1:candidates_len, :)
+                candidates = candidates(1:candidates_len, :);
                 % Calculate weights (inverse distance, so closer pairs are more likely)
                 weights = 1 ./ (candidates(:,3) + 1e-10); % Add small epsilon to avoid division by zero
                 weights = weights / sum(weights); % Normalize to probabilities
@@ -394,7 +394,7 @@ for step = 1:num_steps
 
                 % Calculate angle between newly connected fibers
                 new_angle = acos(dot((P{i}(:,discrete_size)-P{i}(:,1)),P{j}(:,discrete_size)-P{j}(:,1))/(norm(P{i}(:,discrete_size)-P{i}(:,1))*norm(P{j}(:,discrete_size)-P{j}(:,1))));
-                theta_len++
+                theta_len++;
                 theta(theta_len) = new_angle; %measured in radians
 
                 % Determine connection type for reporting
