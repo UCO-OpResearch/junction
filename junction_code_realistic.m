@@ -404,12 +404,18 @@ for step = 1:num_steps
             candidates_len = 0;
             candidates = zeros(num_segments^2, 3);
             for pI = 1:discrete_size
+                % Set the previous distance to effectively infinite
+                prev_dist = L^2;
                 for pj = 1:discrete_size
                     dist = norm(P{i}(:,pI) - P{j}(:,pj));
                     if dist < proximity_threshold
                         candidates_len++;
                         candidates(candidates_len, :) = [pI, pj, dist];
+                    elseif dist > prev_dist % If we're outside of the proximity and getting further away, stop checking
+                        break;
                     end
+                    % Store this as the previous distance
+                    prev_dist = dist;
                 end
             end
 
